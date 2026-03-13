@@ -32,10 +32,6 @@ jobs:
       uses: actions/checkout@main
       with:
         fetch-depth: 0
-
-    - uses: de-vri-es/setup-git-credentials@v2
-      with:
-        credentials: https://kiddin9:${{ secrets.TOKEN_KIDDIN9 }}@github.com/
     
     - name: Set git identity
       run : |
@@ -84,12 +80,12 @@ jobs:
         rm -rf $1
         }
 
-        git_clone https://github.com/sirpdboy/luci-app-lucky oplucky && mvdir oplucky && rm -rf doc
+        git_clone https://github.com/sirpdboy/luci-app-lucky oplucky && mvdir oplucky
         git_clone https://github.com/sirpdboy/luci-app-partexp partexp && mvdir partexp
         git_clone https://github.com/EasyTier/luci-app-easytier luci-app-easytier1 && mvdir luci-app-easytier1
         git_clone https://github.com/OpenListTeam/OpenList-OpenWRT oplist && mvdir oplist
         git_clone https://github.com/eamonxg/luci-theme-aurora luci-theme-aurora && rm -rf luci-theme-aurora/.git
-
+        rm -rf doc
 
     - name: Modify
       run: |
@@ -107,7 +103,7 @@ jobs:
              -H "Authorization: Bearer ${{ secrets.TOKEN_KIDDIN9 }}" \
              -X POST -d '{ "query": "query {repository(owner: \"'"$1"'\", name: \"'"$2"'\"){latestRelease{tagName tagCommit{oid}}refs(refPrefix:\"refs/tags/\",last:1,orderBy:{field:TAG_COMMIT_DATE,direction:ASC}){edges{node{name target{oid}}}}defaultBranchRef{target{...on Commit {oid}}}}}"}' https://api.github.com/graphql)
         }
-        for pkg in $(ls !(luci-*|easytier|lucky|openlist)/Makefile); do
+        for pkg in $(ls */Makefile 2>/dev/null); do
           repo="$(grep ^PKG_SOURCE_URL $pkg | grep github | cut -f 4-5 -d '/' | sed -e 's/.git//' | grep -E '[0-9a-zA-Z_-]+$')" || true
           if [ "$repo" ]; then
             owner="$(echo $repo | cut -f 1 -d '/')"
@@ -134,7 +130,7 @@ jobs:
         ) &
 
         (
-        for pkg in $(ls -d */ | grep -v "naiveproxy" | grep -v "luci-app-passwall"); do
+        for pkg in $(ls -d */); do
           if [[ "$(grep "PKG_VERSION" $pkg/Makefile)" && ! "$(grep "PKG_RELEASE" $pkg/Makefile)" ]]; then
             sed -i "s/\(PKG_VERSION:=.*\)/\1\nPKG_RELEASE:=/" $pkg/Makefile || true
           fi
