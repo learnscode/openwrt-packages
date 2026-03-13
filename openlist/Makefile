@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=openlist
 PKG_VERSION:=4.1.10
 PKG_WEB_VERSION:=4.1.10
-PKG_RELEASE:=25
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/OpenListTeam/OpenList/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=skip
+PKG_HASH:=0e85b2e9f97c819a79a054c2de1f505b0b0d78e1c8ce6783e12da85ea519840c
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
 
@@ -24,7 +24,7 @@ PKG_MAINTAINER:=OpenList Team <openlistteam@gmail.com>
 define Download/openlist-frontend
   FILE:=openlist-frontend-dist-v$(PKG_WEB_VERSION).tar.gz
   URL:=https://github.com/OpenListTeam/OpenList-Frontend/releases/download/v$(PKG_WEB_VERSION)/
-  HASH:=skip
+  HASH:=7df4b3a94eb054963e5eb4addab8d74bdf027c4c02f9a83845ceb7a9eccbc674
 endef
 
 PKG_BUILD_DEPENDS:=golang/host
@@ -39,7 +39,8 @@ GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.GitAuthor=The OpenList Projects Contributors <noreply@openlist.team>' \
 	-X '$(GO_PKG)/v4/internal/conf.GitCommit=tarball/$(shell echo $(PKG_HASH) | cut -c 1-7)' \
 	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION) (OpenWrt $(ARCH_PACKAGES))' \
-	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)'
+	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)' \
+	-s -w
 ifneq ($(CONFIG_ARCH_64BIT),y)
   GO_PKG_EXCLUDES:=drivers/lark
 endif
@@ -92,6 +93,7 @@ define Package/openlist/install
 	$(INSTALL_CONF) $(CURDIR)/files/openlist.config $(1)/etc/config/openlist
 	$(INSTALL_BIN) $(CURDIR)/files/openlist.init $(1)/etc/init.d/openlist
 	$(INSTALL_DATA) $(CURDIR)/files/data.db $(1)/etc/openlist/data.db
+	/usr/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null || true
 endef
 
 $(eval $(call Download,openlist-frontend))
