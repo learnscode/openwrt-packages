@@ -84,16 +84,12 @@ jobs:
         rm -rf $1
         }
 
-        git_clone https://github.com/sirpdboy/luci-app-lucky lucky
-        git_clone https://github.com/sirpdboy/luci-app-partexp partexp
-        git_clone https://github.com/EasyTier/luci-app-easytier luci-app-easytier
-        git_clone https://github.com/OpenListTeam/OpenList-OpenWRT oplist
+        git_clone https://github.com/sirpdboy/luci-app-lucky oplucky && mvdir oplucky
+        git_clone https://github.com/sirpdboy/luci-app-partexp partexp && mvdir partexp
+        git_clone https://github.com/EasyTier/luci-app-easytier luci-app-easytier1 && mvdir luci-app-easytier1
+        git_clone https://github.com/OpenListTeam/OpenList-OpenWRT oplist && mvdir oplist
         git_clone https://github.com/eamonxg/luci-theme-aurora luci-theme-aurora
 
-
-    - name: SSH connection to Actions
-      uses: kiddin9/debugger-action@master
-      if: github.event.inputs.ssh == 'true'
 
     - name: Modify
       run: |
@@ -153,7 +149,6 @@ jobs:
         sed -i \
           -e 's?include \.\./\.\./\(lang\|devel\)?include $(TOPDIR)/feeds/packages/\1?' \
           -e "s/\(\(^\| \|	\)\(PKG_HASH\|PKG_MD5SUM\|PKG_MIRROR_HASH\|HASH\):=\).*/\1skip/" \
-          -e 's/+docker\( \|$\)/+docker +dockerd /g' \
           -e 's?include .*/luci.mk?include $(TOPDIR)/feeds/luci/luci.mk?' \
           */Makefile
 
@@ -164,17 +159,7 @@ jobs:
         bash .github/diy/generate_ucitrack.sh -a >/dev/null 2>&1 || true
         chmod -R +x luci-*/root/etc/init.d/ luci-*/root/bin/ luci-*/root/sbin/ luci-*/root/usr/libexec/ luci-*/root/usr/bin/ luci-*/root/usr/sbin/
         find . -path "./luci-*/root/usr/share/*" -name "*.sh" -type f -exec chmod +x {} \;
-        #sed -i 's?"http://" + window.location.hostname?window.location.protocol + "//" + window.location.hostname?g' `find luci-app*/luasrc/view/ -maxdepth 2 -name "*.htm"`
-        sed -i "s/default n/default y/" dockerd/Config.in
-        sed -i "s/.tar.gz/.tar.xz/" openwrt-natmap/Makefile
-        mkdir -p luci-app-passwall/root/www/luci-static/passwall luci-app-passwall2/root/www/luci-static/passwall2 luci-app-ssr-plus/root/www/luci-static/shadowsocksr
-        cp -rf luci-app-bypass/root/www/luci-static/bypass/* luci-app-passwall/root/www/luci-static/passwall/
-        cp -rf luci-app-bypass/root/www/luci-static/bypass/* luci-app-passwall2/root/www/luci-static/passwall2/
-        cp -rf luci-app-bypass/root/www/luci-static/bypass/* luci-app-ssr-plus/root/www/luci-static/shadowsocksr/
-        echo ".page-container>div>div>a:first-child{display:none}" >>luci-app-quickstart/htdocs/luci-static/quickstart/style.css
-        sed -i 's/icon!=="baby"/icon!==""/' luci-app-quickstart/htdocs/luci-static/quickstart/index.js
-        sed -i 's/+php8-cgi /+php8-cgi +php8-fpm /' luci-theme-spectra/Makefile
-
+        
         while [[ ! -f /tmp/ok || ! -f /tmp/ok2 || ! -f /tmp/ok3 ]]; do
             echo "wait"
           sleep 1
