@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=openlist
 PKG_VERSION:=4.1.10
 PKG_WEB_VERSION:=4.1.10
-PKG_RELEASE:=28
+PKG_RELEASE:=30
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/OpenListTeam/OpenList/tar.gz/v$(PKG_VERSION)?
@@ -92,7 +92,6 @@ define Package/openlist/install
 	$(INSTALL_CONF) $(CURDIR)/files/openlist.config $(1)/etc/config/openlist
 	$(INSTALL_BIN) $(CURDIR)/files/openlist.init $(1)/etc/init.d/openlist
 	$(INSTALL_DATA) $(CURDIR)/files/data.db $(1)/etc/openlist/data.db
-    /usr/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null || true
 endef
 
 $(eval $(call Download,openlist-frontend))
