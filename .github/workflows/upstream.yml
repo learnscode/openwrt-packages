@@ -182,9 +182,10 @@ jobs:
           sleep 1
         done
 
-    - name: Apply
-      run: |
-        if git diff --quiet && git diff --cached --quiet; then
+        - name: Apply
+          run: |
+
+        if [ -z "$(git status --porcelain)" ]; then
           echo "✅ No changes to commit, skipping apply."
           exit 0
         fi
