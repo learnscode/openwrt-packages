@@ -88,8 +88,25 @@ jobs:
         git_clone https://github.com/10000ge10000/luci-app-openclaw
         git_sparse_clone master "https://github.com/coolsnowwolf/packages" net/verysync
         git_sparse_clone master "https://github.com/coolsnowwolf/luci" applications/luci-app-verysync
-        rm -rf doc
 
+    - name: Delete duplicated packages
+      run: |
+        shopt -s extglob
+        set +e
+        rm -Rf */.git
+        for pkg in $(ls -d .github/diy/packages/*); do
+          mv -f $pkg/Makefile.k $pkg/Makefile >/dev/null 2>&1 || true
+        done
+        cp -rf .github/diy/packages/* ./ || true
+        for pkg in $(ls -d .github/diy/packages/*); do
+          mv -f $pkg/Makefile $pkg/Makefile.k >/dev/null 2>&1 || true
+        done
+        rm -rf */.github
+        
+    - name: Apply patches
+      run: |
+        find ".github/diy/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "patch -d './' -p1 -E -f -F 1 --no-backup-if-mismatch -i '%'"
+        
     - name: Modify
       run: |
         shopt -s extglob
