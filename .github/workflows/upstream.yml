@@ -205,38 +205,9 @@ jobs:
         git commit -m "${Emoji[$[$RANDOM % ${#Emoji[@]}]]} Sync $(date +%Y-%m-%d" "%H:%M:%S)"
         git push -f
 
-        - name: Delete old workflow runs
-          uses: actions/github-script@v7
-          with:
-          script: |
-          const owner = context.repo.owner;
-          const repo = context.repo.repo;
-          const retainDays = 1;
-          const keepMinimum = 3;
-
-          // 获取所有 workflow runs
-          const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
-            owner,
-            repo,
-            per_page: 100
-          });
-
-          // 按创建时间降序排序
-          runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-          const threshold = Date.now() - retainDays * 24 * 60 * 60 * 1000;
-
-          for (let i = 0; i < runs.length; i++) {
-            const run = runs[i];
-            // 保留最近的 keepMinimum 个
-            if (i < keepMinimum) continue;
-            // 如果创建时间早于阈值，则删除
-            if (new Date(run.created_at).getTime() < threshold) {
-              console.log(`Deleting run #${run.id} (created at ${run.created_at})`);
-              await github.rest.actions.deleteWorkflowRun({
-                owner,
-                repo,
-                run_id: run.id
-              });
-            }
-          }
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@main
+      continue-on-error: true
+      with:
+        retain_days: 1
+        keep_minimum_runs: 3
