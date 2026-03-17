@@ -206,39 +206,37 @@ jobs:
         git push -f
 
         - name: Delete old workflow runs
-          env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-        REPO="${{ github.repository }}"
-        RETAIN_DAYS=1
-        KEEP_MINIMUM=3
+          uses: actions/github-script@v7
+          with:
+          script: |
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+          const retainDays = 1;
+          const keepMinimum = 3;
 
-        RUNS=$(gh api "/repos/$REPO/actions/runs" --paginate --jq '[.workflow_runs[] | {id: .id, created_at: .created_at}] | sort_by(.created_at) | reverse | .[]')
+          // 获取所有 workflow runs
+          const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+            owner,
+            repo,
+            per_page: 100
+          });
 
-        mapfile -t IDS < <(echo "$RUNS" | jq -r '.id')
-        mapfile -t DATES < <(echo "$RUNS" | jq -r '.created_at')
+          // 按创建时间降序排序
+          runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-        TOTAL=${#IDS[@]}
-        echo "Total runs: $TOTAL"
+          const threshold = Date.now() - retainDays * 24 * 60 * 60 * 1000;
 
-        THRESHOLD=$(date -d "now - $RETAIN_DAYS day" +%s)
-
-        TO_DELETE=()
-        for i in "${!IDS[@]}"; do
-          if [ $i -lt $KEEP_MINIMUM ]; then
-            continue
-          fi
-          CREATED_TS=$(date -d "${DATES[$i]}" +%s)
-          if [ $CREATED_TS -lt $THRESHOLD ]; then
-            TO_DELETE+=("${IDS[$i]}")
-          fi
-        done
-
-        if [ ${#TO_DELETE[@]} -eq 0 ]; then
-          echo "No runs to delete."
-        else
-          echo "Deleting ${#TO_DELETE[@]} runs: ${TO_DELETE[*]}"
-          for ID in "${TO_DELETE[@]}"; do
-            gh api -X DELETE "/repos/$REPO/actions/runs/$ID"
-          done
-        fi
+          for (let i = 0; i < runs.length; i++) {
+            const run = runs[i];
+            // 保留最近的 keepMinimum 个
+            if (i < keepMinimum) continue;
+            // 如果创建时间早于阈值，则删除
+            if (new Date(run.created_at).getTime() < threshold) {
+              console.log(`Deleting run #${run.id} (created at ${run.created_at})`);
+              await github.rest.actions.deleteWorkflowRun({
+                owner,
+                repo,
+                run_id: run.id
+              });
+            }
+          }
