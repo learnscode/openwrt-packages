@@ -85,6 +85,7 @@ jobs:
         git_clone https://github.com/EasyTier/luci-app-easytier luci-app-easytier1 && mvdir luci-app-easytier1
         git_clone https://github.com/AspirantH/OpenList-OpenWRT oplist && mvdir oplist
         git_clone https://github.com/eamonxg/luci-theme-aurora luci-theme-aurora && rm -rf luci-theme-aurora/.??*
+        git_clone https://github.com/10000ge10000/luci-app-openclaw
         git_sparse_clone master "https://github.com/coolsnowwolf/packages" net/verysync
         git_sparse_clone master "https://github.com/coolsnowwolf/luci" applications/luci-app-verysync
         rm -rf doc
