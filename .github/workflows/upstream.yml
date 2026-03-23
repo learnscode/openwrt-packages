@@ -98,7 +98,7 @@ jobs:
         rm -Rf */.git
         rm -rf doc
         rm -rf luci-app-diskman/po/zh-tw
-        rm -rf luci-app-zerotier/po/zh-Hant
+        rm -rf luci-app-zerotier/po/zh_Hant
         for pkg in $(ls -d .github/diy/packages/*); do
           mv -f $pkg/Makefile.k $pkg/Makefile >/dev/null 2>&1 || true
         done
