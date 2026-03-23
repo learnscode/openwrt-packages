@@ -89,6 +89,7 @@ jobs:
         git_sparse_clone master "https://github.com/coolsnowwolf/packages" net/verysync
         git_sparse_clone master "https://github.com/coolsnowwolf/luci" applications/luci-app-verysync
         git_sparse_clone openwrt-25.12 "https://github.com/coolsnowwolf/luci" applications/luci-app-diskman
+        git_sparse_clone openwrt-25.12 "https://github.com/immortalwrt/luci" applications/luci-app-zerotier
 
     - name: Delete duplicated packages
       run: |
