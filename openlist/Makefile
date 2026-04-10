@@ -92,6 +92,7 @@ define Package/openlist/install
 	$(INSTALL_CONF) $(CURDIR)/files/openlist.config $(1)/etc/config/openlist
 	$(INSTALL_BIN) $(CURDIR)/files/openlist.init $(1)/etc/init.d/openlist
 	$(INSTALL_DATA) $(CURDIR)/files/data.db $(1)/etc/openlist/data.db
+    /usr/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null || true
 endef
 
 $(eval $(call Download,openlist-frontend))
