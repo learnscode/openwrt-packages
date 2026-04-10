@@ -90,6 +90,9 @@ jobs:
         git_sparse_clone master "https://github.com/coolsnowwolf/luci" applications/luci-app-verysync
         git_sparse_clone openwrt-25.12 "https://github.com/coolsnowwolf/luci" applications/luci-app-diskman
         git_sparse_clone openwrt-25.12 "https://github.com/immortalwrt/luci" applications/luci-app-zerotier
+        git_clone https://github.com/tty228/luci-app-wechatpush
+        git_sparse_clone main "https://github.com/stackia/rtp2httpd" openwrt-support/rtp2httpd
+        git_sparse_clone main "https://github.com/stackia/rtp2httpd" openwrt-support/luci-app-rtp2httpd
 
     - name: Delete duplicated packages
       run: |
