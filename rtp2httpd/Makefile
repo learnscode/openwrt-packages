@@ -2,22 +2,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rtp2httpd
 
-# Extract version from git tags only if current commit is tagged and clean
-RELEASE_VERSION:=$(if $(DUMP),unknown,$(shell \
-	cd $(CURDIR)/../.. 2>/dev/null && \
-	if git describe --tags --exact-match --match 'v*' 2>/dev/null >/dev/null && \
-	   git diff --quiet 2>/dev/null && \
-	   git diff --cached --quiet 2>/dev/null; then \
-		git describe --tags --exact-match --match 'v*' 2>/dev/null | sed 's/^v//'; \
-	else \
-		echo "$$(date +%Y%m%d)"; \
-	fi))
+RELEASE_VERSION:=3.11.0
 
-# For firmware maintainers: please use Makefile.versioned instead, which has a pinned
-# version and PKG_HASH ready for direct inclusion in your feeds repository.
-# See https://rtp2httpd.com/guide/installation
-PKG_VERSION:=$(shell echo "$(RELEASE_VERSION)" | sed 's/-\([a-z]*\)\.\([0-9]*\)/_\1\2/g')
-PKG_RELEASE:=1
+PKG_VERSION:=3.11.0
+PKG_RELEASE:=2
 PKG_MAINTAINER:=Stackie Jia <jsq2627@gmail.com>
 PKG_LICENSE:=GPL-2.0-or-later
 PKG_LICENSE_FILES:=LICENSE
@@ -26,13 +14,13 @@ PKG_FIXUP:=cmake
 
 export RELEASE_VERSION
 
+PKG_SOURCE:=rtp2httpd-v$(RELEASE_VERSION).tar.gz
+PKG_SOURCE_URL:=https://codeload.github.com/stackia/rtp2httpd/tar.gz/v$(RELEASE_VERSION)?
+PKG_HASH:=skip
+
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) $(CURDIR)/../../* $(PKG_BUILD_DIR)/
-endef
 
 define Package/rtp2httpd
 	SECTION:=net
