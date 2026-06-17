@@ -1,10 +1,10 @@
 include $(TOPDIR)/rules.mk
 
-RELEASE_VERSION:=3.13.4
+RELEASE_VERSION:=3.13.5
 
 PKG_VERSION:=$(shell echo "$(RELEASE_VERSION)" | sed 's/-\([a-z]*\)\.\([0-9]*\)/_\1\2/g')
 PKG_PO_VERSION:=$(PKG_VERSION)
-PKG_RELEASE:=11
+PKG_RELEASE:=12
 
 LUCI_TITLE:=LuCI Support for rtp2httpd
 LUCI_DEPENDS:=+rtp2httpd
