@@ -280,6 +280,7 @@ return view.extend({
 	load: function() {
 		var includeModules = [
 			{ name: 'view.status.include.10_system' },
+			{ name: 'view.status.include.19_cpu' },
 			{ name: 'view.status.include.15_ports', title: _('Port status'), deferFirstLoad: true },
 			{ name: 'view.status.include.20_memory' },
 			{ name: 'view.status.include.25_storage' },
