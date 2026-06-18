@@ -8,8 +8,12 @@
 
 include $(TOPDIR)/rules.mk
 
+VER_MAIN:=3.0.0
+VER_BETA:=beta6
+SUB_FOLDER:=$(VER_MAIN)_wanji
+
 PKG_NAME:=lucky
-PKG_VERSION:=3.0.0
+PKG_VERSION:=$(VER_MAIN)
 PKG_RELEASE:=1
 PKGARCH:=all 
 
@@ -45,10 +49,9 @@ ifeq ($(ARCH),aarch64)
 	LUCKY_ARCH:=arm64
 endif
 
-# 下载目录带beta后缀
-RELEASE_FOLDER:=v$(PKG_VERSION)beta6/$(PKG_VERSION)_wanji
-# 压缩包文件名不带beta后缀
-FILE_NAME:=$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH)_wanji.tar.gz
+RELEASE_ROOT:=https://release.66666.host
+RELEASE_DIR:=v$(VER_MAIN)$(VER_BETA)/$(SUB_FOLDER)
+FILE_NAME:=$(PKG_NAME)_$(VER_MAIN)_Linux_$(LUCKY_ARCH)_wanji.tar.gz
 
 PKG_LICENSE:=GPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
@@ -72,7 +75,7 @@ define Package/$(PKG_NAME)/description
 endef
 
 define Build/Prepare
-	[ ! -f $(PKG_BUILD_DIR)/$(FILE_NAME) ] && wget https://release.66666.host/$(RELEASE_FOLDER)/$(FILE_NAME) -O $(PKG_BUILD_DIR)/$(FILE_NAME)
+	[ ! -f $(PKG_BUILD_DIR)/$(FILE_NAME) ] && wget $(RELEASE_ROOT)/$(RELEASE_DIR)/$(FILE_NAME) -O $(PKG_BUILD_DIR)/$(FILE_NAME)
 	tar -xzvf $(PKG_BUILD_DIR)/$(FILE_NAME) -C $(PKG_BUILD_DIR) || exit 1
 endef
 
@@ -80,6 +83,7 @@ define Package/$(PKG_NAME)/conffiles
 /etc/config/lucky
 /etc/lucky/*
 endef
+
 define Build/Compile
 endef
 
