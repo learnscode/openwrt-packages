@@ -9,8 +9,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lucky
-PKG_VERSION:=2.27.2
-PKG_RELEASE:=18
+PKG_VERSION:=3.0.0
+PKG_RELEASE:=1
 PKGARCH:=all 
 
 ifeq ($(ARCH),mipsel)
@@ -45,6 +45,11 @@ ifeq ($(ARCH),aarch64)
 	LUCKY_ARCH:=arm64
 endif
 
+# 下载目录带beta后缀
+RELEASE_FOLDER:=v$(PKG_VERSION)beta6/$(PKG_VERSION)_wanji
+# 压缩包文件名不带beta后缀
+FILE_NAME:=$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH)_wanji.tar.gz
+
 PKG_LICENSE:=GPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=GDY666 <gdy666@foxmail.com>
@@ -67,8 +72,8 @@ define Package/$(PKG_NAME)/description
 endef
 
 define Build/Prepare
-	[ ! -f $(PKG_BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH).tar.gz ] && wget https://github.com/gdy666/lucky/releases/download/v$(PKG_VERSION)/$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH).tar.gz -O $(PKG_BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH).tar.gz
-	tar -xzvf $(PKG_BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION)_Linux_$(LUCKY_ARCH).tar.gz -C $(PKG_BUILD_DIR) || exit 1
+	[ ! -f $(PKG_BUILD_DIR)/$(FILE_NAME) ] && wget https://release.66666.host/$(RELEASE_FOLDER)/$(FILE_NAME) -O $(PKG_BUILD_DIR)/$(FILE_NAME)
+	tar -xzvf $(PKG_BUILD_DIR)/$(FILE_NAME) -C $(PKG_BUILD_DIR) || exit 1
 endef
 
 define Package/$(PKG_NAME)/conffiles
