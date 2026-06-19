@@ -33,11 +33,13 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Set git identity
+    - name: Set git identity & install jq
       run : |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
         sudo timedatectl set-timezone "Asia/Shanghai"
+        sudo apt update -y
+        sudo apt install jq -y
 
     - name: Syn upstream
       run: |
@@ -90,6 +92,12 @@ jobs:
         git_sparse_clone master "https://github.com/coolsnowwolf/packages" net/verysync
         git_sparse_clone main "https://github.com/kiddin9/op-packages" luci-app-verysync
         git_sparse_clone main "https://github.com/kiddin9/op-packages" luci-mod-network luci-mod-status luci-mod-system && rm -rf luci-mod-system/htdocs/luci-static/resources/view/system/leds.js && rm -rf luci-mod-system/htdocs/luci-static/resources/view/system/led-trigger/
+
+        # 移除LED菜单节点
+        jq 'del(.["admin/system/leds"])' luci-mod-system/root/usr/share/luci/menu.d/luci-mod-system.json > tmp_menu.json && mv tmp_menu.json luci-mod-system/root/usr/share/luci/menu.d/luci-mod-system.json
+        # 删除ucitrack init字段
+        jq 'map(del(.init))' luci-mod-system/root/usr/share/ucitrack/luci-mod-system-system.json > tmp_ucitrack.json && mv tmp_ucitrack.json luci-mod-system/root/usr/share/ucitrack/luci-mod-system-system.json
+
         git_sparse_clone openwrt-25.12 "https://github.com/coolsnowwolf/luci" applications/luci-app-diskman && rm -rf luci-app-diskman/po/zh_Hant/
         git_sparse_clone openwrt-25.12 "https://github.com/immortalwrt/luci" applications/luci-app-zerotier
         git_clone https://github.com/tty228/luci-app-wechatpush && (cd luci-app-wechatpush && rm -rf .??* docs* *.md LICENSE)
