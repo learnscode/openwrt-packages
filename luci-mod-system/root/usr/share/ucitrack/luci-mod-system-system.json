@@ -1,9 +1,8 @@
 {
-	"config": "system",
-	"init": "led",
-	"exec": "/etc/init.d/log reload",
-	"affects": [
-		"luci_statistics",
-		"dhcp"
-	]
+  "config": "system",
+  "exec": "/etc/init.d/log reload",
+  "affects": [
+    "luci_statistics",
+    "dhcp"
+  ]
 }
