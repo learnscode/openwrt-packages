@@ -7,7 +7,7 @@
 			},
 			"ubus": {
 				"file": [ "read" ],
-				"luci": [ "getLEDs", "getTimezones", "getUSBDevices", "getUnixtime" ],
+				"luci": [ "getTimezones", "getUSBDevices", "getUnixtime" ],
 				"rc": [ "list" ]
 			},
 			"uci": [ "luci", "system" ]
