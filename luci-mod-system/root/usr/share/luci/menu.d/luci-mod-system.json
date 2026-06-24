@@ -122,8 +122,6 @@
 		}
 	},
 
-		"depends": {
-			"acl": [ "luci-mod-system-config" ],
 
 	"admin/system/flash": {
 		"title": "Backup / Flash Firmware",
