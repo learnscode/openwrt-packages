@@ -7,8 +7,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
+
 PKG_VERSION:=git
-PKG_RELEASE:=55
+PKG_RELEASE:=56
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
@@ -16,9 +17,10 @@ PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 
 GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
+
 PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
 
 PKG_LICENSE:=AGPL-3.0
 PKG_LICENSE_FILE:=LICENSE
@@ -36,6 +38,7 @@ PKG_USE_MIPS16:=0
 PKG_BUILD_FLAGS:=no-mips16
 
 GO_PKG:=github.com/OpenListTeam/OpenList
+
 GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.BuiltAt=$(shell date '+%Y-%m-%d %H:%M:%S %z')' \
 	-X '$(GO_PKG)/v4/internal/conf.GoVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')' \
@@ -69,9 +72,20 @@ define Package/openlist/description
   A file list program that supports multiple storage, powered by Gin and Solidjs.
 endef
 
+ifeq ($(ARCH),arm)
+  ARM_CPU_FEATURES:=$(word 2,$(subst +,$(space),$(call qstrip,$(CONFIG_CPU_TYPE))))
+  ifeq ($(ARM_CPU_FEATURES),)
+    TARGET_CFLAGS:=
+    TARGET_LDFLAGS:=
+  endif
+endif
+
+ifneq ($(CONFIG_USE_MUSL),)
+  TARGET_CFLAGS += -D_LARGEFILE64_SOURCE
+endif
+
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/public/dist
 	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/$(FILE_openlist-frontend)
 	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html
 	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json
