@@ -8,15 +8,15 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
 PKG_VERSION:=git
-PKG_RELEASE:=54
+PKG_RELEASE:=55
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
 PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 
-GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7 || echo "unknown")
-PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//' || echo "4.2.2")
+GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
+PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -72,10 +72,6 @@ endef
 define Build/Prepare
 	$(call Build/Prepare/Default)
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/public/dist
-	if [ ! -f "$(DL_DIR)/$(FILE_openlist-frontend)" ]; then \
-		echo "Frontend package not found, check network or PKG_WEB_VERSION"; \
-		exit 1; \
-	fi
 	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/$(FILE_openlist-frontend)
 	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html
 	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json
