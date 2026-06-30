@@ -7,18 +7,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
-GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
-PKG_VERSION:=$(shell date -u +%Y%m%d)-$(GIT_HASH)
-PKG_RELEASE:=53
+PKG_VERSION:=git
+PKG_RELEASE:=54
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
 PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 
-PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
+GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7 || echo "unknown")
+PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//' || echo "4.2.2")
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_LICENSE:=AGPL-3.0
 PKG_LICENSE_FILE:=LICENSE
@@ -41,7 +41,7 @@ GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.GoVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')' \
 	-X '$(GO_PKG)/v4/internal/conf.GitAuthor=The OpenList Projects Contributors <noreply@openlist.team>' \
 	-X '$(GO_PKG)/v4/internal/conf.GitCommit=git/$(GIT_HASH)' \
-	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION) (OpenWrt $(ARCH_PACKAGES))' \
+	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION)-$(GIT_HASH) (OpenWrt $(ARCH_PACKAGES))' \
 	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)' \
 	-s -w
 ifneq ($(CONFIG_ARCH_64BIT),y)
@@ -61,29 +61,22 @@ define Package/openlist
 endef
 
 define Package/openlist/conffiles
-/etc/openlist
 /etc/config/openlist
+/etc/openlist/data.db
 endef
 
 define Package/openlist/description
   A file list program that supports multiple storage, powered by Gin and Solidjs.
 endef
 
-ifeq ($(ARCH),arm)
-  ARM_CPU_FEATURES:=$(word 2,$(subst +,$(space),$(call qstrip,$(CONFIG_CPU_TYPE))))
-  ifeq ($(ARM_CPU_FEATURES),)
-    TARGET_CFLAGS:=
-    TARGET_LDFLAGS:=
-  endif
-endif
-
-ifneq ($(CONFIG_USE_MUSL),)
-  TARGET_CFLAGS += -D_LARGEFILE64_SOURCE
-endif
-
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/openlist-frontend-dist-v$(PKG_WEB_VERSION).tar.gz
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/public/dist
+	if [ ! -f "$(DL_DIR)/$(FILE_openlist-frontend)" ]; then \
+		echo "Frontend package not found, check network or PKG_WEB_VERSION"; \
+		exit 1; \
+	fi
+	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/$(FILE_openlist-frontend)
 	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html
 	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json
 endef
@@ -96,7 +89,7 @@ define Package/openlist/install
 	$(INSTALL_CONF) $(CURDIR)/files/openlist.config $(1)/etc/config/openlist
 	$(INSTALL_BIN) $(CURDIR)/files/openlist.init $(1)/etc/init.d/openlist
 	$(INSTALL_DATA) $(CURDIR)/files/data.db $(1)/etc/openlist/data.db
-	/usr/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null || true
+	-$(STAGING_DIR_HOSTPKG)/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null
 endef
 
 $(eval $(call Download,openlist-frontend))
