@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=openlist
 GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
 PKG_VERSION:=$(shell date -u +%Y%m%d)-$(GIT_HASH)
-PKG_RELEASE:=52
+PKG_RELEASE:=53
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
-PKG_SOURCE_VERSION:=e9ea991584b3213c572ac2033d6d92d1d7f2e2e5
+PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 
 PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
