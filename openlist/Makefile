@@ -7,13 +7,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
-PKG_VERSION:=4.2.2
-PKG_WEB_VERSION:=4.2.2
-PKG_RELEASE:=51
+GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
+PKG_VERSION:=$(shell date -u +%Y%m%d)-$(GIT_HASH)
+PKG_RELEASE:=52
 
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
+PKG_SOURCE_VERSION:=e9ea991584b3213c572ac2033d6d92d1d7f2e2e5
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/OpenListTeam/OpenList/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=skip
+
+PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
 
@@ -37,7 +40,7 @@ GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.BuiltAt=$(shell date '+%Y-%m-%d %H:%M:%S %z')' \
 	-X '$(GO_PKG)/v4/internal/conf.GoVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')' \
 	-X '$(GO_PKG)/v4/internal/conf.GitAuthor=The OpenList Projects Contributors <noreply@openlist.team>' \
-	-X '$(GO_PKG)/v4/internal/conf.GitCommit=tarball/$(shell echo $(PKG_HASH) | cut -c 1-7)' \
+	-X '$(GO_PKG)/v4/internal/conf.GitCommit=git/$(GIT_HASH)' \
 	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION) (OpenWrt $(ARCH_PACKAGES))' \
 	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)' \
 	-s -w
