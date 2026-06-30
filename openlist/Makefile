@@ -7,28 +7,25 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
-
 PKG_VERSION:=git
-PKG_RELEASE:=56
+PKG_RELEASE:=57
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
 PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_DATE:=$(shell date +%Y-%m-%d)
+PKG_MIRROR_HASH:=skip
 
-GIT_HASH:=$(shell git ls-remote https://github.com/OpenListTeam/OpenList.git main | cut -c 1-7)
-
-PKG_WEB_VERSION:=$(shell curl -s https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest | grep tag_name | cut -d '"' -f4 | sed 's/^v//')
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_LICENSE:=AGPL-3.0
 PKG_LICENSE_FILE:=LICENSE
 PKG_MAINTAINER:=OpenList Team <openlistteam@gmail.com>
 
+PKG_WEB_VERSION:=main
 define Download/openlist-frontend
-  FILE:=openlist-frontend-dist-v$(PKG_WEB_VERSION).tar.gz
-  URL:=https://github.com/OpenListTeam/OpenList-Frontend/releases/download/v$(PKG_WEB_VERSION)/
+  FILE:=openlist-frontend-dist-$(PKG_WEB_VERSION).tar.gz
+  URL:=https://github.com/OpenListTeam/OpenList-Frontend/releases/download/$(PKG_WEB_VERSION)/
   HASH:=skip
 endef
 
@@ -38,15 +35,15 @@ PKG_USE_MIPS16:=0
 PKG_BUILD_FLAGS:=no-mips16
 
 GO_PKG:=github.com/OpenListTeam/OpenList
-
 GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.BuiltAt=$(shell date '+%Y-%m-%d %H:%M:%S %z')' \
 	-X '$(GO_PKG)/v4/internal/conf.GoVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')' \
 	-X '$(GO_PKG)/v4/internal/conf.GitAuthor=The OpenList Projects Contributors <noreply@openlist.team>' \
-	-X '$(GO_PKG)/v4/internal/conf.GitCommit=git/$(GIT_HASH)' \
-	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION)-$(GIT_HASH) (OpenWrt $(ARCH_PACKAGES))' \
-	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)' \
+	-X '$(GO_PKG)/v4/internal/conf.GitCommit=$(shell git -C $(PKG_BUILD_DIR) rev-parse --short HEAD 2>/dev/null || echo unknown)' \
+	-X '$(GO_PKG)/v4/internal/conf.Version=git-$(shell git -C $(PKG_BUILD_DIR) rev-parse --short HEAD 2>/dev/null || echo unknown) (OpenWrt $(ARCH_PACKAGES))' \
+	-X '$(GO_PKG)/v4/internal/conf.WebVersion=$(PKG_WEB_VERSION)' \
 	-s -w
+
 ifneq ($(CONFIG_ARCH_64BIT),y)
   GO_PKG_EXCLUDES:=drivers/lark
 endif
@@ -58,18 +55,19 @@ define Package/openlist
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=Web Servers/Proxies
-  TITLE:=A file list program that supports multiple storage
+  TITLE:=A file list program that supports multiple storage (Git latest)
   URL:=https://openlist.team/
   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle
 endef
 
 define Package/openlist/conffiles
+/etc/openlist
 /etc/config/openlist
-/etc/openlist/data.db
 endef
 
 define Package/openlist/description
   A file list program that supports multiple storage, powered by Gin and Solidjs.
+  Built from latest Git main branch.
 endef
 
 ifeq ($(ARCH),arm)
@@ -86,9 +84,9 @@ endif
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/$(FILE_openlist-frontend)
-	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html
-	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json
+	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/openlist-frontend-dist-$(PKG_WEB_VERSION).tar.gz 2>/dev/null || true
+	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html 2>/dev/null || true
+	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json 2>/dev/null || true
 endef
 
 define Package/openlist/install
@@ -99,7 +97,7 @@ define Package/openlist/install
 	$(INSTALL_CONF) $(CURDIR)/files/openlist.config $(1)/etc/config/openlist
 	$(INSTALL_BIN) $(CURDIR)/files/openlist.init $(1)/etc/init.d/openlist
 	$(INSTALL_DATA) $(CURDIR)/files/data.db $(1)/etc/openlist/data.db
-	-$(STAGING_DIR_HOSTPKG)/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null
+	/usr/bin/upx --lzma --best $(1)/usr/bin/openlist 2>/dev/null || true
 endef
 
 $(eval $(call Download,openlist-frontend))
