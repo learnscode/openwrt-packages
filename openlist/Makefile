@@ -1,4 +1,3 @@
-#
 # Copyright (C) 2015-2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v3.
@@ -8,24 +7,23 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openlist
 PKG_VERSION:=git
-PKG_RELEASE:=57
+PKG_WEB_VERSION:=4.2.2
+PKG_RELEASE:=58
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/OpenListTeam/OpenList.git
-PKG_SOURCE_VERSION:=6eedff851c9650fd96c2e4e5f1dc032a3e419098
-PKG_SOURCE_DATE:=$(shell date +%Y-%m-%d)
+PKG_SOURCE_BRANCH:=main
 PKG_MIRROR_HASH:=skip
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/OpenList-$(PKG_VERSION)
 
 PKG_LICENSE:=AGPL-3.0
 PKG_LICENSE_FILE:=LICENSE
 PKG_MAINTAINER:=OpenList Team <openlistteam@gmail.com>
 
-PKG_WEB_VERSION:=main
 define Download/openlist-frontend
-  FILE:=openlist-frontend-dist-$(PKG_WEB_VERSION).tar.gz
-  URL:=https://github.com/OpenListTeam/OpenList-Frontend/releases/download/$(PKG_WEB_VERSION)/
+  FILE:=openlist-frontend-dist-v$(PKG_WEB_VERSION).tar.gz
+  URL:=https://github.com/OpenListTeam/OpenList-Frontend/releases/download/v$(PKG_WEB_VERSION)/
   HASH:=skip
 endef
 
@@ -39,11 +37,10 @@ GO_PKG_LDFLAGS:= \
 	-X '$(GO_PKG)/v4/internal/conf.BuiltAt=$(shell date '+%Y-%m-%d %H:%M:%S %z')' \
 	-X '$(GO_PKG)/v4/internal/conf.GoVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')' \
 	-X '$(GO_PKG)/v4/internal/conf.GitAuthor=The OpenList Projects Contributors <noreply@openlist.team>' \
-	-X '$(GO_PKG)/v4/internal/conf.GitCommit=$(shell git -C $(PKG_BUILD_DIR) rev-parse --short HEAD 2>/dev/null || echo unknown)' \
-	-X '$(GO_PKG)/v4/internal/conf.Version=git-$(shell git -C $(PKG_BUILD_DIR) rev-parse --short HEAD 2>/dev/null || echo unknown) (OpenWrt $(ARCH_PACKAGES))' \
-	-X '$(GO_PKG)/v4/internal/conf.WebVersion=$(PKG_WEB_VERSION)' \
+	-X '$(GO_PKG)/v4/internal/conf.GitCommit=latest/$(PKG_VERSION)' \
+	-X '$(GO_PKG)/v4/internal/conf.Version=v$(PKG_VERSION) (OpenWrt $(ARCH_PACKAGES))' \
+	-X '$(GO_PKG)/v4/internal/conf.WebVersion=v$(PKG_WEB_VERSION)' \
 	-s -w
-
 ifneq ($(CONFIG_ARCH_64BIT),y)
   GO_PKG_EXCLUDES:=drivers/lark
 endif
@@ -55,7 +52,7 @@ define Package/openlist
   SECTION:=net
   CATEGORY:=Network
   SUBMENU:=Web Servers/Proxies
-  TITLE:=A file list program that supports multiple storage (Git latest)
+  TITLE:=A file list program that supports multiple storage
   URL:=https://openlist.team/
   DEPENDS:=$(GO_ARCH_DEPENDS) +ca-bundle
 endef
@@ -67,7 +64,6 @@ endef
 
 define Package/openlist/description
   A file list program that supports multiple storage, powered by Gin and Solidjs.
-  Built from latest Git main branch.
 endef
 
 ifeq ($(ARCH),arm)
@@ -84,9 +80,9 @@ endif
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/openlist-frontend-dist-$(PKG_WEB_VERSION).tar.gz 2>/dev/null || true
-	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html 2>/dev/null || true
-	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json 2>/dev/null || true
+	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/public/dist -xzf $(DL_DIR)/openlist-frontend-dist-v$(PKG_WEB_VERSION).tar.gz
+	$(SED) 's_https://cdn.oplist.org/gh/OpenListTeam/Logo@main_/assets_g' $(PKG_BUILD_DIR)/public/dist/index.html
+	$(SED) 's_https://docs.oplist.org_/assets_g' $(PKG_BUILD_DIR)/public/dist/static/manifest.json
 endef
 
 define Package/openlist/install
