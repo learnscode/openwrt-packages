@@ -9,12 +9,12 @@
 include $(TOPDIR)/rules.mk
 
 VER_MAIN:=3.0.0
-VER_BETA:=beta7
+VER_BETA:=beta8
 SUB_FOLDER:=$(VER_MAIN)_wanji
 
 PKG_NAME:=lucky
 PKG_VERSION:=$(VER_MAIN)
-PKG_RELEASE:=24
+PKG_RELEASE:=25
 PKGARCH:=all 
 
 ifeq ($(ARCH),mipsel)
