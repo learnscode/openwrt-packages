@@ -84,6 +84,7 @@ jobs:
         git_clone https://github.com/sirpdboy/luci-app-partexp partexp && mvdir partexp
         git_clone https://github.com/EasyTier/luci-app-easytier luci-app-easytier1 && mvdir luci-app-easytier1
         git_clone https://github.com/AspirantH/OpenList-OpenWRT oplist && mvdir oplist
+        sed -i 's/option enabled '\''0'\''/option enabled '\''1'\''/' openlist/files/openlist.config
         git_clone https://github.com/eamonxg/luci-theme-aurora luci-theme-aurora && (cd luci-theme-aurora && rm -rf .??* docs* *.md LICENSE)
         #git_clone https://github.com/eamonxg/luci-app-aurora-config luci-app-aurora-config && cd luci-app-aurora-config && rm -rf .??* docs* *.md LICENSE
         #git_clone https://github.com/10000ge10000/luci-app-openclaw
